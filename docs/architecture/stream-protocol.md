@@ -2,7 +2,7 @@
 type: API Contract
 title: Chat stream protocol
 description: The SSE events the server sends to the browser while a reply streams.
-status: stable
+status: draft
 tags: [contract, sse, streaming]
 resource: ../../packages/shared/src/stream.ts
 generated: { by: github-copilot/claude-opus-5.5, at: "2026-11-20T04:02:58Z" }

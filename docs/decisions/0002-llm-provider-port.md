@@ -2,7 +2,7 @@
 type: Architecture Decision
 title: 0002 LLM provider port
 description: The server talks to models through one interface; only the Gemini adapter imports the SDK.
-status: stable
+status: draft
 tags: [adr, llm, ports-and-adapters]
 generated: { by: github-copilot/claude-opus-5.5, at: "2026-11-20T04:02:58Z" }
 ---

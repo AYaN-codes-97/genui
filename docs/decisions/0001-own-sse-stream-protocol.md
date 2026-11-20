@@ -2,7 +2,7 @@
 type: Architecture Decision
 title: 0001 Own SSE stream protocol
 description: The browser receives our own stream events over fetch, not provider events or EventSource.
-status: stable
+status: draft
 tags: [adr, sse, streaming]
 generated: { by: github-copilot/claude-opus-5.5, at: "2026-11-20T04:02:58Z" }
 ---

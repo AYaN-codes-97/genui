@@ -2,7 +2,7 @@
 type: Architecture Decision
 title: 0004 TypeScript 7 and Oxlint
 description: Native TypeScript 7 for type checks, Oxlint with tsgolint for type-aware linting.
-status: stable
+status: draft
 tags: [adr, toolchain]
 generated: { by: github-copilot/claude-opus-5.5, at: "2026-11-20T04:02:58Z" }
 ---

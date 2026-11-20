@@ -2,7 +2,7 @@
 type: External API
 title: Gemini Interactions API
 description: Endpoint, streaming events and state rules of the Gemini API our server adapter calls.
-status: stable
+status: draft
 tags: [gemini, llm, external-api]
 generated: { by: github-copilot/claude-opus-5.5, at: "2026-11-20T04:02:58Z" }
 verified: { by: github-copilot/claude-opus-5.5, at: "2026-11-20T04:02:58Z" }

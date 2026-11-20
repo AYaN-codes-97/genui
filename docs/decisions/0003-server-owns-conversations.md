@@ -2,7 +2,7 @@
 type: Architecture Decision
 title: 0003 Server owns conversations
 description: The server stores history and calls Gemini statelessly with the full history each turn.
-status: stable
+status: draft
 tags: [adr, state, gemini]
 generated: { by: github-copilot/claude-opus-5.5, at: "2026-11-20T04:02:58Z" }
 ---
