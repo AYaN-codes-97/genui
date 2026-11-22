@@ -35,7 +35,9 @@ Run `npm run verify` after every meaningful change, not only at the end.
 * Never weaken a sensor to make it pass. That means: no `.skip`, `.only` or
   `.todo` in tests; no deleting or loosening assertions; no edits to
   `.oxlintrc.json`, `tools/harness/` or `.github/` unless the task is about them.
-  If a check seems wrong, stop and say so in the pull request.
+  If a check seems wrong, stop and say so in the pull request. The `tamper-guard`
+  check enforces this; run `npm run guard:tamper` before pushing. Only a human may
+  add the `harness-change` label that lets a flagged change through.
 * A change to a contract in `packages/shared` needs updated tests in the same pull
   request and an ADR if behaviour changes. See [stream protocol](docs/architecture/stream-protocol.md).
 * Only the Gemini adapter imports `@google/genai`. `apps/web` never imports from
