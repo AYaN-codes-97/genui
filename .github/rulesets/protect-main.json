@@ -24,7 +24,10 @@
       "type": "required_status_checks",
       "parameters": {
         "strict_required_status_checks_policy": true,
-        "required_status_checks": [{ "context": "verify", "integration_id": 15368 }]
+        "required_status_checks": [
+          { "context": "verify", "integration_id": 15368 },
+          { "context": "tamper-guard", "integration_id": 15368 }
+        ]
       }
     }
   ]

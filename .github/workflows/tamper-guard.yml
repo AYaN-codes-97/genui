@@ -1,0 +1,55 @@
+name: Tamper guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tamper-guard-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  tamper-guard:
+    name: tamper-guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out the pull request (read as data, never executed)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: pr
+          fetch-depth: 0
+          persist-credentials: false
+
+      # The guard's own code comes from main, so a pull request cannot weaken the checker it is judged by.
+      - name: Check out the trusted guard from main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: trusted/.node-version
+
+      - name: Pick the guard to run
+        id: guard
+        run: |
+          if [ -f trusted/tools/harness/src/guard-tamper.ts ]; then
+            echo "path=trusted/tools/harness/src/guard-tamper.ts" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::main has no tamper guard yet, so this run uses the pull request's copy. This only happens for the pull request that adds the guard."
+            echo "path=pr/tools/harness/src/guard-tamper.ts" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Look for sensor tampering
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+          GUARD: ${{ steps.guard.outputs.path }}
+        run: node "$GUARD" --repo pr --base "$BASE_SHA" --head "$HEAD_SHA"
