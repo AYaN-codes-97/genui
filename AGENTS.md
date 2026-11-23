@@ -75,6 +75,7 @@ house rules on top. `npm run check:docs` enforces them and prints a fix for each
   `* [Title](file.md) - description`.
 * When you write or substantially change a doc, set
   `generated: { by: github-copilot/<model>, at: <now> }` and `status: draft`.
+  If you can't tell which model you are, use `github-copilot/unknown`.
 * Never add a `verified` entry with a `human:` actor. Only humans add those.
 * External API docs must cite `sources` (footnotes `[^id]` match `sources[].id`)
   and set `stale_after`.
