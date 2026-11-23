@@ -41,6 +41,22 @@ describe('createApp', () => {
     expect(response.headers.get('x-request-id')).toBe('client-id');
   });
 
+  it.each(['a', 'Ab9._-'.repeat(21) + 'xy'])('preserves valid request ID %s', async (requestId) => {
+    const response = await fetch(`${baseUrl}/health`, { headers: { 'x-request-id': requestId } });
+    expect(response.headers.get('x-request-id')).toBe(requestId);
+  });
+
+  it.each(['a'.repeat(129), 'invalid/id', ''])('replaces invalid request ID %j', async (requestId) => {
+    const response = await fetch(`${baseUrl}/missing`, { headers: { 'x-request-id': requestId } });
+    const generated = response.headers.get('x-request-id');
+    const body = ApiErrorBodySchema.parse(await response.json());
+    expect(generated).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+    expect(generated).not.toBe(requestId);
+    expect(body.error.requestId).toBe(generated);
+  });
+
   it('returns the shared not-found envelope with the same request ID', async () => {
     const response = await fetch(`${baseUrl}/missing`, { headers: { 'x-request-id': 'missing-id' } });
     const body = ApiErrorBodySchema.parse(await response.json());

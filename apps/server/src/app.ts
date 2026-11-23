@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import type { ApiErrorBody } from '@genui/shared';
 import express, { type ErrorRequestHandler, type Express } from 'express';
+import { z } from 'zod';
+
+const RequestIdSchema = z.string().regex(/^[A-Za-z0-9._-]{1,128}$/);
 
 const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
   if (res.headersSent) {
@@ -18,7 +21,8 @@ export function createApp(registerRoutes?: (app: Express) => void): Express {
   app.disable('x-powered-by');
 
   app.use((req, res, next) => {
-    const requestId = req.get('x-request-id') ?? randomUUID();
+    const parsed = RequestIdSchema.safeParse(req.get('x-request-id'));
+    const requestId = parsed.success ? parsed.data : randomUUID();
     res.setHeader('x-request-id', requestId);
     res.locals.requestId = requestId;
     next();
