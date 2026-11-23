@@ -1,0 +1,44 @@
+name: Task
+description: One well-scoped piece of work for an agent or a human.
+title: "[task] "
+labels: ["task"]
+body:
+  - type: textarea
+    id: intent
+    attributes:
+      label: Intent
+      description: What should change and why, in one or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Observable results that prove it is done. Each one should become a test.
+      placeholder: |
+        - [ ] GET /health returns 200 with { "status": "ok" }
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+      description: What must not change. Agents treat this as a hard boundary.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Links to the docs, ADRs or contracts that apply.
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk
+      options:
+        - low (docs, tests, isolated code)
+        - medium (new module, new dependency)
+        - high (contract, security, CI or harness)
+    validations:
+      required: true
