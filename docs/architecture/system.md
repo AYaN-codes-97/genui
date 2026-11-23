@@ -4,7 +4,7 @@ title: System overview
 description: Workspace layout, what exists today, and the dependency rules between packages.
 status: draft
 tags: [architecture, workspaces]
-generated: { by: github-copilot/claude-opus-5.5, at: "2026-11-20T04:02:58Z" }
+generated: { by: github-copilot/unknown, at: "2026-11-23T19:24:02Z" }
 ---
 
 # System overview
@@ -24,7 +24,7 @@ apps/web (React) --HTTP + SSE--> apps/server (Express) --LlmProvider port--> Gem
 | Path | Status | Purpose |
 | --- | --- | --- |
 | [packages/shared](../../packages/shared/src/index.ts) | built | Zod schemas and types for messages, API bodies, errors and stream events. No build step: consumers import the `.ts` source. |
-| `apps/server` | planned | Express 5 API. Owns conversations and streams replies as SSE. |
+| `apps/server` | built | Express 5 API foundation with health check and error handling; conversations and SSE are planned. |
 | `apps/web` | planned | React + Vite + Tailwind chat UI. |
 | [tools/harness](../../tools/harness/src/check-docs.ts) | built | Repo sensors, starting with `check:docs`. |
 

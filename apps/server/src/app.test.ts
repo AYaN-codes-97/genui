@@ -1,21 +1,24 @@
 import { once } from 'node:events';
-import type { AddressInfo } from 'node:net';
+import type { Server } from 'node:http';
 import { ApiErrorBodySchema } from '@genui/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from './app.ts';
 
 describe('createApp', () => {
-  const app = createApp((app) => {
-    app.get('/throw', () => {
+  const app = createApp((routes) => {
+    routes.get('/throw', () => {
       throw new Error('private error message');
     });
   });
-  const server = app.listen(0, '127.0.0.1');
+  let server: Server;
   let baseUrl: string;
 
   beforeAll(async () => {
+    server = app.listen(0, '127.0.0.1');
     await once(server, 'listening');
-    baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+    const address = server.address();
+    if (address === null || typeof address === 'string') throw new Error('Expected TCP address');
+    baseUrl = `http://127.0.0.1:${address.port}`;
   });
 
   afterAll(async () => {
@@ -46,13 +49,21 @@ describe('createApp', () => {
     expect(body.error.requestId).toBe(response.headers.get('x-request-id'));
   });
 
+  it('generates a request ID for a missing route', async () => {
+    const response = await fetch(`${baseUrl}/missing`);
+    const body = ApiErrorBodySchema.parse(await response.json());
+    expect(body.error.requestId).toBe(response.headers.get('x-request-id'));
+    expect(body.error.requestId).toMatch(/^[0-9a-f-]{36}$/i);
+  });
+
   it('hides unexpected error messages and stacks', async () => {
-    const response = await fetch(`${baseUrl}/throw`);
+    const response = await fetch(`${baseUrl}/throw`, { headers: { 'x-request-id': 'error-id' } });
     const text = await response.text();
     const body = ApiErrorBodySchema.parse(JSON.parse(text));
     expect(response.status).toBe(500);
     expect(body.error.code).toBe('internal');
     expect(body.error.requestId).toBe(response.headers.get('x-request-id'));
+    expect(body.error.requestId).toBe('error-id');
     expect(text).not.toContain('private error message');
     expect(text).not.toContain('Error:');
     expect(text).not.toContain('app.test.ts');
