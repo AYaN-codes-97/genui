@@ -1,0 +1,87 @@
+import { once } from 'node:events';
+import type { Server } from 'node:http';
+import { ApiErrorBodySchema } from '@genui/shared';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { createApp } from './app.ts';
+
+describe('createApp', () => {
+  const app = createApp((routes) => {
+    routes.get('/throw', () => {
+      throw new Error('private error message');
+    });
+  });
+  let server: Server;
+  let baseUrl: string;
+
+  beforeAll(async () => {
+    server = app.listen(0, '127.0.0.1');
+    await once(server, 'listening');
+    const address = server.address();
+    if (address === null || typeof address === 'string') throw new Error('Expected TCP address');
+    baseUrl = `http://127.0.0.1:${address.port}`;
+  });
+
+  afterAll(async () => {
+    await new Promise<void>((resolve, reject) => {
+      server.close((error) => error ? reject(error) : resolve());
+    });
+  });
+
+  it('returns health and generates a request ID', async () => {
+    const response = await fetch(`${baseUrl}/health`);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ status: 'ok' });
+    expect(response.headers.get('x-request-id')).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+  });
+
+  it('preserves a supplied request ID', async () => {
+    const response = await fetch(`${baseUrl}/health`, { headers: { 'x-request-id': 'client-id' } });
+    expect(response.headers.get('x-request-id')).toBe('client-id');
+  });
+
+  it.each(['a', 'Ab9._-'.repeat(21) + 'xy'])('preserves valid request ID %s', async (requestId) => {
+    const response = await fetch(`${baseUrl}/health`, { headers: { 'x-request-id': requestId } });
+    expect(response.headers.get('x-request-id')).toBe(requestId);
+  });
+
+  it.each(['a'.repeat(129), 'invalid/id', ''])('replaces invalid request ID %j', async (requestId) => {
+    const response = await fetch(`${baseUrl}/missing`, { headers: { 'x-request-id': requestId } });
+    const generated = response.headers.get('x-request-id');
+    const body = ApiErrorBodySchema.parse(await response.json());
+    expect(generated).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+    expect(generated).not.toBe(requestId);
+    expect(body.error.requestId).toBe(generated);
+  });
+
+  it('returns the shared not-found envelope with the same request ID', async () => {
+    const response = await fetch(`${baseUrl}/missing`, { headers: { 'x-request-id': 'missing-id' } });
+    const body = ApiErrorBodySchema.parse(await response.json());
+    expect(response.status).toBe(404);
+    expect(body.error.code).toBe('not_found');
+    expect(body.error.requestId).toBe(response.headers.get('x-request-id'));
+  });
+
+  it('generates a request ID for a missing route', async () => {
+    const response = await fetch(`${baseUrl}/missing`);
+    const body = ApiErrorBodySchema.parse(await response.json());
+    expect(body.error.requestId).toBe(response.headers.get('x-request-id'));
+    expect(body.error.requestId).toMatch(/^[0-9a-f-]{36}$/i);
+  });
+
+  it('hides unexpected error messages and stacks', async () => {
+    const response = await fetch(`${baseUrl}/throw`, { headers: { 'x-request-id': 'error-id' } });
+    const text = await response.text();
+    const body = ApiErrorBodySchema.parse(JSON.parse(text));
+    expect(response.status).toBe(500);
+    expect(body.error.code).toBe('internal');
+    expect(body.error.requestId).toBe(response.headers.get('x-request-id'));
+    expect(body.error.requestId).toBe('error-id');
+    expect(text).not.toContain('private error message');
+    expect(text).not.toContain('Error:');
+    expect(text).not.toContain('app.test.ts');
+  });
+});

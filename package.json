@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "check:docs": "node tools/harness/src/check-docs.ts",
     "guard:tamper": "node tools/harness/src/guard-tamper.ts",
+    "dev:server": "node apps/server/src/main.ts",
     "verify": "npm run typecheck && npm run lint && npm run check:docs && npm test"
   },
   "devDependencies": {
