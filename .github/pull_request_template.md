@@ -31,3 +31,17 @@
 ## Open questions
 
 <!-- Assumptions you made, or decisions left to a human. "None" if none. -->
+
+## Outcome
+
+<!-- One of: success / flawed (merged but needed fixes) / blocked (needs a human) / manual (a human did it). -->
+
+* Result:
+* Agent and model:
+* CI rounds:
+* Time from issue to green:
+* Premium requests (if shown):
+
+## Papercuts
+
+<!-- Anything in the repo, docs or instructions that slowed you down or misled you. "None" if none. -->

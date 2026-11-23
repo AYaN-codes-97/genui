@@ -14,7 +14,7 @@ from our Express server, which calls Gemini. Start with
 
 1. `npm run verify` passes locally. It runs, in order: typecheck, lint, `check:docs`, tests.
 2. The pull request description fills in every section of the evidence pack (below).
-3. CI check `verify` is green. `main` is protected: all changes go through a pull request.
+3. CI checks `verify` and `tamper-guard` are green. `main` is protected: all changes go through a pull request.
 
 Run `npm run verify` after every meaningful change, not only at the end.
 
@@ -25,9 +25,9 @@ Run `npm run verify` after every meaningful change, not only at the end.
 | `packages/shared/` | Zod contracts shared by server and web | [stream protocol](docs/architecture/stream-protocol.md) |
 | `apps/server/` | Express API (planned) | [ADR 0002](docs/decisions/0002-llm-provider-port.md), [ADR 0003](docs/decisions/0003-server-owns-conversations.md) |
 | `apps/web/` | React chat UI (planned) | [ADR 0001](docs/decisions/0001-own-sse-stream-protocol.md) |
-| `tools/harness/` | Repo sensors such as `check:docs` | this file |
+| `tools/harness/` | Repo sensors: `check:docs`, `guard:tamper` | [ADR 0005](docs/decisions/0005-tamper-guard.md) |
 | `docs/` | Knowledge bundle: architecture, decisions, references | [docs/index.md](docs/index.md) |
-| `.github/` | CI workflow, ruleset, PR template | this file |
+| `.github/` | CI, ruleset, agent setup, agent profiles, issue and PR templates | [ADR 0006](docs/decisions/0006-first-agent-worker.md) |
 
 ## Hard rules
 
@@ -48,6 +48,13 @@ Run `npm run verify` after every meaningful change, not only at the end.
 * No secrets in code, tests, docs or logs. Read keys from environment variables.
 * TypeScript is run directly by Node: no `enum`, `namespace` or constructor
   parameter properties; relative imports end in `.ts`; no `any`.
+
+## Context and cost
+
+* Read the docs this file points to for the area you change, not the whole repo.
+* New sensors and scripts print a short summary plus a fix hint, not raw dumps.
+  Every line an agent reads is paid for on every later turn.
+* Enable only the MCP servers and tools the task needs.
 
 ## Tests
 
@@ -88,6 +95,9 @@ Every pull request description uses
 * **Risk**: none, low, medium or high, with one line each for side effects,
   performance, compatibility and security. List any files changed outside the task's scope.
 * **Open questions**: anything you assumed or could not decide.
+* **Outcome**: success, flawed, blocked or manual; agent and model; CI rounds; time
+  from issue to green. This is how the factory measures itself.
+* **Papercuts**: anything that slowed you down or misled you, so the harness improves.
 
 ## When to stop and ask
 
