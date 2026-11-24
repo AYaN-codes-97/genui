@@ -18,6 +18,10 @@ frontmatter, links and these indexes.
 
 * [Decisions](decisions/index.md) - Architecture Decision Records: why things are the way they are.
 
+## Designs
+
+* [Designs](designs/index.md) - Specs written before code; the interfaces agents build against.
+
 ## References
 
 * [References](references/index.md) - Distilled, sourced notes on the external APIs we depend on.
