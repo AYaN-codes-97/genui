@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { parseArgs } from 'node:util';
+import { prepareBase } from './git-base.ts';
 import { type FileChange, findTampering, hunkLines, OVERRIDE_LABEL, parseNameStatus } from './tamper.ts';
 
 const { values } = parseArgs({
@@ -11,6 +12,13 @@ const { values } = parseArgs({
 });
 const { base, head, repo } = values;
 const git = (...args: string[]) => execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+
+try {
+  prepareBase(git, base);
+} catch {
+  console.log(`tamper-guard: cannot load base "${base}". Fix: run "git fetch origin main", or pass --base <commit>.`);
+  process.exit(1);
+}
 
 const range = `${base}...${head}`;
 const changes: FileChange[] = parseNameStatus(git('diff', '--name-status', '-z', '-M', range)).map((entry) => {
