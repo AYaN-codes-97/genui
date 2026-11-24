@@ -100,10 +100,7 @@ describe('openEventStream', () => {
     const { response, stream, res } = await connect();
     const write = vi.spyOn(res, 'write');
 
-    expect(() => {
-      // @ts-expect-error Deliberately pass invalid data to exercise runtime validation.
-      stream.send(invalid);
-    }).toThrow(ZodError);
+    expect(() => Reflect.apply(stream.send.bind(stream), stream, [invalid])).toThrow(ZodError);
     expect(write).not.toHaveBeenCalled();
     expect(stream.closed).toBe(false);
     expect(stream.send(delta)).toBe(true);
@@ -120,8 +117,7 @@ describe('openEventStream', () => {
     stream.close();
     expect(stream.closed).toBe(true);
     expect(stream.send(delta)).toBe(false);
-    // @ts-expect-error Closed streams reject even invalid events without validation.
-    expect(stream.send({ type: 'invalid' })).toBe(false);
+    expect(Reflect.apply(stream.send.bind(stream), stream, [{ type: 'invalid' }])).toBe(false);
     expect(write).not.toHaveBeenCalled();
     expect(end).toHaveBeenCalledTimes(1);
     expect(await response.text()).toBe('');
@@ -162,8 +158,7 @@ describe('openEventStream', () => {
     expect(stream.closed).toBe(true);
     expect(clear).toHaveBeenCalledWith(interval.mock.results[0]?.value);
     expect(stream.send(delta)).toBe(false);
-    // @ts-expect-error Disconnected streams reject even invalid events without validation.
-    expect(stream.send({ type: 'invalid' })).toBe(false);
+    expect(Reflect.apply(stream.send.bind(stream), stream, [{ type: 'invalid' }])).toBe(false);
     stream.close();
     expect(write).not.toHaveBeenCalled();
     expect(end).not.toHaveBeenCalled();
